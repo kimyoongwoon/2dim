@@ -1,4 +1,5 @@
 import { Visualizer } from './visualization/visualization.js';
+import { PointResult } from './core/pointResult.js';
 
 class VisualizationPage {
     constructor() {
@@ -8,7 +9,9 @@ class VisualizationPage {
             window.location.href = 'index.html';
             return;
         }
-        this.currentData = JSON.parse(dataStr);
+        const parsed = JSON.parse(dataStr);
+        parsed.points = parsed.points.map(p => PointResult.fromJSON(p));
+        this.currentData = parsed;
         this.visualizer = new Visualizer('vizChart');
 
         this.vizPanel = document.getElementById('vizPanel');

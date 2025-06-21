@@ -191,11 +191,6 @@ h2 {
     color: var(--text-primary);
 }
 
-.window-nav {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
 
 .btn-secondary {
     background-color: var(--secondary-color);
@@ -320,9 +315,6 @@ input[type="checkbox"] {
         grid-template-columns: 1fr;
     }
     
-    .window-nav {
-        justify-content: space-between;
-    }
     
     .chart-container {
         height: 400px;

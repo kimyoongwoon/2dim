@@ -12,6 +12,14 @@
         
         <div class="control-panel">
             <h2>데이터 설정</h2>
+
+            <div class="control-group">
+                <label for="dataPreset">데이터 프리셋:</label>
+                <select id="dataPreset">
+                    <option value="custom">커스텀</option>
+                    <option value="stock">주가 데이터</option>
+                </select>
+            </div>
             
             <div class="control-group">
                 <label for="dimensions">차원 수:</label>
@@ -37,6 +45,13 @@
             <div class="control-group" id="vectorSizeGroup" style="display: none;">
                 <label for="vectorSize">벡터 크기:</label>
                 <input type="number" id="vectorSize" min="2" max="10" value="3">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="allowDuplicates" checked>
+                    중복 허용
+                </label>
             </div>
             
             <button id="generateBtn" class="btn-primary">데이터 생성</button>
@@ -94,6 +109,10 @@
                         </div>
                         <div class="control-group">
                             <span id="windowRange">범위: -</span>
+                        </div>
+                        <div class="control-group">
+                            <button id="zoomInBtn" class="btn-secondary">확대</button>
+                            <button id="zoomOutBtn" class="btn-secondary">축소</button>
                         </div>
                     </div>
                 </div>

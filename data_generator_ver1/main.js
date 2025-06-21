@@ -407,25 +407,19 @@ class HighDimensionalDataApp {
         const enabled = this.windowEnabledCheckbox.checked;
         this.windowSizeInput.disabled = !enabled;
         this.windowStartSlider.disabled = !enabled;
-        
+
         if (enabled && this.visualizer.windowConfig) {
-            const { xMin, xMax, step, windowSize } = this.visualizer.windowConfig;
+            const { xMin, xMax, windowSize } = this.visualizer.windowConfig;
             this.windowRangeSpan.textContent = `범위: ${xMin.toFixed(1)} ~ ${xMax.toFixed(1)}`;
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
             const min = this.currentData.metadata.dimRangeMin[xDimIndex];
             const max = this.currentData.metadata.dimRangeMax[xDimIndex];
-            const range = max - min;
-            if (range <= windowSize) {
-                this.windowStartSlider.min = min;
-                this.windowStartSlider.max = min;
-                this.windowStartSlider.value = min;
-                this.windowStartSlider.disabled = true;
-            } else {
-                this.windowStartSlider.disabled = false;
-                this.windowStartSlider.min = min;
-                this.windowStartSlider.max = max - windowSize;
-                this.windowStartSlider.step = 'any';
-                this.windowStartSlider.value = xMin;
+            const maxStart = Math.max(min, max - windowSize);
+            this.windowStartSlider.min = min;
+            this.windowStartSlider.max = maxStart;
+            this.windowStartSlider.step = 'any';
+            if (parseFloat(this.windowStartSlider.value) < min || parseFloat(this.windowStartSlider.value) > maxStart) {
+                this.windowStartSlider.value = Math.min(Math.max(xMin, min), maxStart);
             }
         } else {
             this.windowRangeSpan.textContent = '범위: 전체';

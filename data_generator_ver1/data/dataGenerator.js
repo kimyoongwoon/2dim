@@ -76,7 +76,8 @@ export class DataGenerator {
             vectorSize = null,
             rangeMin = -100,
             rangeMax = 100,
-            intervalRatio = 0.1  // 범위의 몇 %를 간격으로 할 것인가
+            intervalRatio = 0.1,  // 범위의 몇 %를 간격으로 할 것인가
+            allowDuplicates = true
         } = config;
 
         // 차원 이름 설정
@@ -95,25 +96,27 @@ export class DataGenerator {
 
         // 포인트 생성
         const points = [];
+        const usedCoords = new Set();
         for (let i = 0; i < pointCount; i++) {
-            // 각 차원의 좌표 생성
-            const coordinateNum = dimRangeMin.map((min, idx) => {
-                const max = dimRangeMax[idx];
-                const interval = dimInterval[idx];
-                
-                // 일부는 정확한 그리드 위치에, 일부는 랜덤 위치에
-                if (Math.random() < 0.7) {
-                    // 그리드에 정렬된 위치
-                    const steps = Math.floor((max - min) / interval);
-                    const step = Math.floor(Math.random() * steps); // steps가 아닌 steps-1까지
-                    const coord = min + step * interval;
-                    // 범위를 벗어나지 않도록 보장
-                    return Math.min(coord, max);
-                } else {
-                    // 완전 랜덤 위치
-                    return this.randomBetween(min, max);
-                }
-            });
+            let coordinateNum;
+            let key;
+            do {
+                coordinateNum = dimRangeMin.map((min, idx) => {
+                    const max = dimRangeMax[idx];
+                    const interval = dimInterval[idx];
+
+                    if (Math.random() < 0.7) {
+                        const steps = Math.floor((max - min) / interval);
+                        const step = Math.floor(Math.random() * steps);
+                        const coord = min + step * interval;
+                        return Math.min(coord, max);
+                    } else {
+                        return this.randomBetween(min, max);
+                    }
+                });
+                key = coordinateNum.join(',');
+            } while (!allowDuplicates && usedCoords.has(key));
+            usedCoords.add(key);
 
             // 값 생성
             const value = this.generateValue(valueType, dimensions, vectorSize);
@@ -142,7 +145,8 @@ export class DataGenerator {
                 dimInterval,
                 valueType,
                 vectorSize,
-                pointCount
+                pointCount,
+                allowDuplicates
             }
         };
     }

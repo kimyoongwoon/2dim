@@ -17,11 +17,13 @@ class HighDimensionalDataApp {
 
     initializeUI() {
         // UI 요소 가져오기
+        this.dataPresetSelect = document.getElementById('dataPreset');
         this.dimensionsInput = document.getElementById('dimensions');
         this.pointCountInput = document.getElementById('pointCount');
         this.valueTypeSelect = document.getElementById('valueType');
         this.vectorSizeInput = document.getElementById('vectorSize');
         this.vectorSizeGroup = document.getElementById('vectorSizeGroup');
+        this.allowDuplicatesCheckbox = document.getElementById('allowDuplicates');
         this.generateBtn = document.getElementById('generateBtn');
         this.dataOutput = document.getElementById('dataOutput');
         
@@ -37,16 +39,41 @@ class HighDimensionalDataApp {
         this.windowSizeInput = document.getElementById('windowSize');
         this.windowStartSlider = document.getElementById('windowStart');
         this.windowRangeSpan = document.getElementById('windowRange');
+        this.zoomInBtn = document.getElementById('zoomInBtn');
+        this.zoomOutBtn = document.getElementById('zoomOutBtn');
         
-        // 이벤트 리스너 등록
-        this.generateBtn.addEventListener('click', () => this.generateData());
-        this.updateVizBtn.addEventListener('click', () => this.updateVisualization());
+        // 이벤트 리스너 등록 (존재 여부 확인)
+        if (this.generateBtn) this.generateBtn.addEventListener('click', () => this.generateData());
+        if (this.updateVizBtn) this.updateVizBtn.addEventListener('click', () => this.updateVisualization());
         
         // 값 타입 변경 시 벡터 크기 입력 표시/숨김
         this.valueTypeSelect.addEventListener('change', (e) => {
             const isVector = e.target.value === 'vector' || e.target.value === 'labelVector';
             this.vectorSizeGroup.style.display = isVector ? 'block' : 'none';
         });
+
+        if (this.dataPresetSelect) {
+            this.dataPresetSelect.addEventListener('change', () => {
+                const preset = this.dataPresetSelect.value;
+                if (preset === 'stock') {
+                    this.dimensionsInput.value = 1;
+                    this.valueTypeSelect.value = 'double';
+                    this.dimensionsInput.disabled = true;
+                    this.valueTypeSelect.disabled = true;
+                    this.vectorSizeGroup.style.display = 'none';
+                    if (this.allowDuplicatesCheckbox) {
+                        this.allowDuplicatesCheckbox.checked = false;
+                        this.allowDuplicatesCheckbox.disabled = true;
+                    }
+                } else {
+                    this.dimensionsInput.disabled = false;
+                    this.valueTypeSelect.disabled = false;
+                    if (this.allowDuplicatesCheckbox) {
+                        this.allowDuplicatesCheckbox.disabled = false;
+                    }
+                }
+            });
+        }
         
         // X축 변경 시 윈도우 범위 업데이트
         this.xAxisSelect.addEventListener('change', () => {
@@ -80,6 +107,30 @@ class HighDimensionalDataApp {
             this.updateWindowControls();
             this.updateVisualization();
         });
+
+        if (this.zoomInBtn) {
+            this.zoomInBtn.addEventListener('click', () => {
+                const step = this.visualizer.windowConfig.step || 1;
+                const newSize = Math.max(step, this.visualizer.windowConfig.windowSize - step);
+                const xDimIndex = parseInt(this.xAxisSelect.value || 0);
+                this.visualizer.resizeWindow(newSize, xDimIndex);
+                this.windowSizeInput.value = newSize;
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
+        }
+
+        if (this.zoomOutBtn) {
+            this.zoomOutBtn.addEventListener('click', () => {
+                const step = this.visualizer.windowConfig.step || 1;
+                const newSize = this.visualizer.windowConfig.windowSize + step;
+                const xDimIndex = parseInt(this.xAxisSelect.value || 0);
+                this.visualizer.resizeWindow(newSize, xDimIndex);
+                this.windowSizeInput.value = newSize;
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
+        }
     }
 
     generateData() {
@@ -87,6 +138,7 @@ class HighDimensionalDataApp {
         const pointCount = parseInt(this.pointCountInput.value);
         const valueType = this.valueTypeSelect.value;
         const vectorSize = parseInt(this.vectorSizeInput.value);
+        const allowDuplicates = this.allowDuplicatesCheckbox ? this.allowDuplicatesCheckbox.checked : true;
 
         // 이전 시각화 정리
         if (this.visualizer && this.visualizer.chart) {
@@ -101,6 +153,7 @@ class HighDimensionalDataApp {
             dimensions,
             pointCount,
             valueType,
+            allowDuplicates,
             vectorSize: (valueType === 'vector' || valueType === 'labelVector') ? vectorSize : undefined
         };
 
@@ -128,6 +181,7 @@ class HighDimensionalDataApp {
     }
 
     initializeVisualizationUI() {
+        if (!this.vizPanel || !this.xAxisSelect || !this.yAxisSelect) return;
         // 시각화 패널 표시
         this.vizPanel.style.display = 'block';
         
@@ -172,44 +226,47 @@ class HighDimensionalDataApp {
         });
         
         // 시각화 업데이트 버튼 이벤트 재등록
-        const newUpdateVizBtn = this.updateVizBtn.cloneNode(true);
-        this.updateVizBtn.parentNode.replaceChild(newUpdateVizBtn, this.updateVizBtn);
-        this.updateVizBtn = newUpdateVizBtn;
-        
-        this.updateVizBtn.addEventListener('click', () => this.updateVisualization());
+        if (this.updateVizBtn) {
+            const newUpdateVizBtn = this.updateVizBtn.cloneNode(true);
+            this.updateVizBtn.parentNode.replaceChild(newUpdateVizBtn, this.updateVizBtn);
+            this.updateVizBtn = newUpdateVizBtn;
+            this.updateVizBtn.addEventListener('click', () => this.updateVisualization());
+        }
         
         // 차원 필터 생성
         this.createDimensionFilters();
         
         // 윈도우 컨트롤 이벤트 리스너 재등록
         // 이전 리스너 제거를 위해 요소 복제
-        const newWindowEnabled = this.windowEnabledCheckbox.cloneNode(true);
-        this.windowEnabledCheckbox.parentNode.replaceChild(newWindowEnabled, this.windowEnabledCheckbox);
-        this.windowEnabledCheckbox = newWindowEnabled;
+        if (this.windowEnabledCheckbox && this.windowSizeInput && this.windowStartSlider) {
+            const newWindowEnabled = this.windowEnabledCheckbox.cloneNode(true);
+            this.windowEnabledCheckbox.parentNode.replaceChild(newWindowEnabled, this.windowEnabledCheckbox);
+            this.windowEnabledCheckbox = newWindowEnabled;
 
-        const newWindowSize = this.windowSizeInput.cloneNode(true);
-        this.windowSizeInput.parentNode.replaceChild(newWindowSize, this.windowSizeInput);
-        this.windowSizeInput = newWindowSize;
+            const newWindowSize = this.windowSizeInput.cloneNode(true);
+            this.windowSizeInput.parentNode.replaceChild(newWindowSize, this.windowSizeInput);
+            this.windowSizeInput = newWindowSize;
 
-        const newWindowStart = this.windowStartSlider.cloneNode(true);
-        this.windowStartSlider.parentNode.replaceChild(newWindowStart, this.windowStartSlider);
-        this.windowStartSlider = newWindowStart;
+            const newWindowStart = this.windowStartSlider.cloneNode(true);
+            this.windowStartSlider.parentNode.replaceChild(newWindowStart, this.windowStartSlider);
+            this.windowStartSlider = newWindowStart;
+        }
         
         // 윈도우 컨트롤 이벤트 재등록
-        this.windowEnabledCheckbox.addEventListener('change', (e) => {
+        if (this.windowEnabledCheckbox) this.windowEnabledCheckbox.addEventListener('change', (e) => {
             this.visualizer.toggleWindow(e.target.checked);
             this.updateWindowControls();
             this.updateVisualization();
         });
 
-        this.windowSizeInput.addEventListener('input', (e) => {
+        if (this.windowSizeInput) this.windowSizeInput.addEventListener('input', (e) => {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
             this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
             this.updateWindowControls();
             this.updateVisualization();
         });
 
-        this.windowStartSlider.addEventListener('input', (e) => {
+        if (this.windowStartSlider) this.windowStartSlider.addEventListener('input', (e) => {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
             this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
             this.updateWindowControls();
@@ -290,6 +347,8 @@ class HighDimensionalDataApp {
     updateWindowControls() {
         if (!this.visualizer) return;
         
+        if (!this.windowEnabledCheckbox || !this.windowSizeInput || !this.windowStartSlider) return;
+
         const enabled = this.windowEnabledCheckbox.checked;
         this.windowSizeInput.disabled = !enabled;
         this.windowStartSlider.disabled = !enabled;
@@ -310,7 +369,7 @@ class HighDimensionalDataApp {
     }
 
     updateVisualization() {
-        if (!this.currentData || !this.visualizer) return;
+        if (!this.currentData || !this.visualizer || !this.xAxisSelect || !this.yAxisSelect) return;
         
         const xDimIndex = parseInt(this.xAxisSelect.value);
         const yDimIndex = parseInt(this.yAxisSelect.value);
@@ -356,6 +415,10 @@ class HighDimensionalDataApp {
             <p><span class="coord-label">생성된 포인트 수:</span> ${this.currentData.metadata.pointCount}</p>
             <p><span class="coord-label">값 타입:</span> ${this.currentData.metadata.valueType}</p>
         `;
+
+        if (this.currentData.metadata.allowDuplicates !== undefined) {
+            metadataHTML += `<p><span class="coord-label">중복 허용:</span> ${this.currentData.metadata.allowDuplicates}</p>`;
+        }
         
         // 벡터 타입인 경우 벡터 크기 표시
         if (this.currentData.metadata.vectorSize) {

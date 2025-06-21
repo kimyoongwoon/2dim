@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고차원 데이터 시각화</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>고차원 데이터 생성기</h1>
+        
+        <div class="control-panel">
+            <h2>데이터 설정</h2>
+            
+            <div class="control-group">
+                <label for="dimensions">차원 수:</label>
+                <input type="number" id="dimensions" min="2" max="10" value="3">
+            </div>
+            
+            <div class="control-group">
+                <label for="pointCount">포인트 개수:</label>
+                <input type="number" id="pointCount" min="10" max="1000" value="100">
+            </div>
+            
+            <div class="control-group">
+                <label for="valueType">값 타입:</label>
+                <select id="valueType">
+                    <option value="double">단일 실수</option>
+                    <option value="vector">벡터</option>
+                    <option value="range">범위 [min, max]</option>
+                    <option value="labelNumber">레이블-숫자 쌍</option>
+                    <option value="labelVector">레이블-벡터 쌍</option>
+                </select>
+            </div>
+            
+            <div class="control-group" id="vectorSizeGroup" style="display: none;">
+                <label for="vectorSize">벡터 크기:</label>
+                <input type="number" id="vectorSize" min="2" max="10" value="3">
+            </div>
+            
+            <button id="generateBtn" class="btn-primary">데이터 생성</button>
+        </div>
+        
+        <div class="output-panel">
+            <h2>생성된 데이터</h2>
+            <div id="dataOutput"></div>
+        </div>
+        
+        <div class="visualization-panel" id="vizPanel" style="display: none;">
+            <h2>2D 정사영 시각화</h2>
+            
+            <div class="viz-controls">
+                <div class="control-row">
+                    <div class="control-group">
+                        <label for="xAxis">X축 차원:</label>
+                        <select id="xAxis"></select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="yAxis">Y축 차원:</label>
+                        <select id="yAxis"></select>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="colorScheme">색상 스킴:</label>
+                        <select id="colorScheme">
+                            <option value="viridis">Viridis</option>
+                            <option value="plasma">Plasma</option>
+                            <option value="coolwarm">Cool-Warm</option>
+                            <option value="rainbow">Rainbow</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="window-controls">
+                    <h3>윈도우 컨트롤</h3>
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>
+                                <input type="checkbox" id="windowEnabled" checked>
+                                윈도우 모드 활성화
+                            </label>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="windowSize">윈도우 크기:</label>
+                            <input type="number" id="windowSize" value="50" min="10" max="200">
+                        </div>
+                        
+                        <div class="control-group window-nav">
+                            <button id="windowLeft" class="btn-secondary">◀</button>
+                            <span id="windowRange">범위: -</span>
+                            <button id="windowRight" class="btn-secondary">▶</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dimension-filters" id="dimensionFilters">
+                    <h3>차원 필터</h3>
+                    <!-- 동적으로 생성됨 -->
+                </div>
+                
+                <button id="updateVizBtn" class="btn-primary">시각화 업데이트</button>
+                <span id="pointCount" class="info-text"></span>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="vizChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

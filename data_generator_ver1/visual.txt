@@ -1,0 +1,45 @@
+getColorFromScheme(value, scheme) {
+        value = Math.max(0, Math.min(1, value)); // 0-1 범위로 클램프
+
+        switch (scheme) {
+            case 'viridis':
+                return this.viridis(value);
+            case 'plasma':
+                return this.plasma(value);
+            case 'coolwarm':
+                return this.coolwarm(value);
+            case 'rainbow':
+                return this.rainbow(value);
+            default:
+                return this.viridis(value);
+        }
+    }
+
+    // 색상 스킴 구현
+    viridis(t) {
+        const r = Math.floor(255 * (0.267 + 0.004*t + 0.329*t*t - 0.446*t*t*t + 0.341*t*t*t*t));
+        const g = Math.floor(255 * (0.005 + 1.399*t - 0.859*t*t + 0.135*t*t*t));
+        const b = Math.floor(255 * (0.331 + 0.872*t - 1.773*t*t + 1.573*t*t*t));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    plasma(t) {
+        const r = Math.floor(255 * (0.05 + 2.53*t - 4.29*t*t + 3.09*t*t*t));
+        const g = Math.floor(255 * (0.03 + 0.07*t + 0.76*t*t - 0.77*t*t*t));
+        const b = Math.floor(255 * (0.53 + 1.28*t - 2.74*t*t + 1.92*t*t*t));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    coolwarm(t) {
+        const r = Math.floor(255 * (0.23 + 0.76*t));
+        const g = Math.floor(255 * (0.43 + 0.57*(1-2*Math.abs(t-0.5))));
+        const b = Math.floor(255 * (0.78 - 0.77*t));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    rainbow(t) {
+        const r = Math.floor(255 * Math.max(0, 2 - 6*Math.abs(t - 0.0)));
+        const g = Math.floor(255 * Math.max(0, 2 - 6*Math.abs(t - 0.33)));
+        const b = Math.floor(255 * Math.max(0, 2 - 6*Math.abs(t - 0.67)));
+        return `rgb(${r}, ${g}, ${b})`;
+    }

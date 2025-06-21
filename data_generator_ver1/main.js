@@ -26,6 +26,7 @@ class HighDimensionalDataApp {
         this.allowDuplicatesCheckbox = document.getElementById('allowDuplicates');
         this.generateBtn = document.getElementById('generateBtn');
         this.dataOutput = document.getElementById('dataOutput');
+        this.viewChartBtn = document.getElementById('viewChartBtn');
         
         // 시각화 UI 요소
         this.vizPanel = document.getElementById('vizPanel');
@@ -45,6 +46,9 @@ class HighDimensionalDataApp {
         // 이벤트 리스너 등록 (존재 여부 확인)
         if (this.generateBtn) this.generateBtn.addEventListener('click', () => this.generateData());
         if (this.updateVizBtn) this.updateVizBtn.addEventListener('click', () => this.updateVisualization());
+        if (this.viewChartBtn) this.viewChartBtn.addEventListener('click', () => {
+            window.location.href = 'visualization.html';
+        });
         
         // 값 타입 변경 시 벡터 크기 입력 표시/숨김
         this.valueTypeSelect.addEventListener('change', (e) => {
@@ -182,6 +186,12 @@ class HighDimensionalDataApp {
 
         // 결과 표시
         this.displayData();
+
+        // 저장 및 그래프 버튼 활성화
+        if (this.viewChartBtn) {
+            localStorage.setItem('generatedData', JSON.stringify(this.currentData));
+            this.viewChartBtn.disabled = false;
+        }
         
         // 시각화 UI 초기화
         this.initializeVisualizationUI();
@@ -378,10 +388,19 @@ class HighDimensionalDataApp {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
             const min = this.currentData.metadata.dimRangeMin[xDimIndex];
             const max = this.currentData.metadata.dimRangeMax[xDimIndex];
-            this.windowStartSlider.min = min;
-            this.windowStartSlider.max = max - windowSize;
-            this.windowStartSlider.step = 'any';
-            this.windowStartSlider.value = xMin;
+            const range = max - min;
+            if (range <= windowSize) {
+                this.windowStartSlider.min = min;
+                this.windowStartSlider.max = min;
+                this.windowStartSlider.value = min;
+                this.windowStartSlider.disabled = true;
+            } else {
+                this.windowStartSlider.disabled = false;
+                this.windowStartSlider.min = min;
+                this.windowStartSlider.max = max - windowSize;
+                this.windowStartSlider.step = 'any';
+                this.windowStartSlider.value = xMin;
+            }
         } else {
             this.windowRangeSpan.textContent = '범위: 전체';
         }

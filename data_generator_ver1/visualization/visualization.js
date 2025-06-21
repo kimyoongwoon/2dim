@@ -200,6 +200,29 @@ export class Visualizer {
     }
 
     /**
+     * 윈도우 시작 위치 설정
+     */
+    setWindowStart(start, xDimIndex = 0) {
+        this.windowConfig.xMin = start;
+        this.windowConfig.xMax = start + this.windowConfig.windowSize;
+
+        const metadata = this.projectionEngine.metadata;
+        if (metadata && xDimIndex < metadata.dimensions) {
+            const min = metadata.dimRangeMin[xDimIndex];
+            const max = metadata.dimRangeMax[xDimIndex];
+
+            if (this.windowConfig.xMin < min) {
+                this.windowConfig.xMin = min;
+                this.windowConfig.xMax = min + this.windowConfig.windowSize;
+            }
+            if (this.windowConfig.xMax > max) {
+                this.windowConfig.xMax = max;
+                this.windowConfig.xMin = max - this.windowConfig.windowSize;
+            }
+        }
+    }
+
+    /**
      * 윈도우 크기 변경
      */
     resizeWindow(newSize, xDimIndex = 0) {

@@ -35,8 +35,7 @@ class HighDimensionalDataApp {
         // 윈도우 컨트롤
         this.windowEnabledCheckbox = document.getElementById('windowEnabled');
         this.windowSizeInput = document.getElementById('windowSize');
-        this.windowLeftBtn = document.getElementById('windowLeft');
-        this.windowRightBtn = document.getElementById('windowRight');
+        this.windowStartSlider = document.getElementById('windowStart');
         this.windowRangeSpan = document.getElementById('windowRange');
         
         // 이벤트 리스너 등록
@@ -65,24 +64,19 @@ class HighDimensionalDataApp {
         this.windowEnabledCheckbox.addEventListener('change', (e) => {
             this.visualizer.toggleWindow(e.target.checked);
             this.updateWindowControls();
+            this.updateVisualization();
         });
-        
-        this.windowSizeInput.addEventListener('change', (e) => {
+
+        this.windowSizeInput.addEventListener('input', (e) => {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
             this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
             this.updateWindowControls();
-        });
-        
-        this.windowLeftBtn.addEventListener('click', () => {
-            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.moveWindow('left', xDimIndex);
-            this.updateWindowControls();
             this.updateVisualization();
         });
-        
-        this.windowRightBtn.addEventListener('click', () => {
+
+        this.windowStartSlider.addEventListener('input', (e) => {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.moveWindow('right', xDimIndex);
+            this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
             this.updateWindowControls();
             this.updateVisualization();
         });
@@ -192,41 +186,32 @@ class HighDimensionalDataApp {
         const newWindowEnabled = this.windowEnabledCheckbox.cloneNode(true);
         this.windowEnabledCheckbox.parentNode.replaceChild(newWindowEnabled, this.windowEnabledCheckbox);
         this.windowEnabledCheckbox = newWindowEnabled;
-        
+
         const newWindowSize = this.windowSizeInput.cloneNode(true);
         this.windowSizeInput.parentNode.replaceChild(newWindowSize, this.windowSizeInput);
         this.windowSizeInput = newWindowSize;
-        
-        const newWindowLeft = this.windowLeftBtn.cloneNode(true);
-        this.windowLeftBtn.parentNode.replaceChild(newWindowLeft, this.windowLeftBtn);
-        this.windowLeftBtn = newWindowLeft;
-        
-        const newWindowRight = this.windowRightBtn.cloneNode(true);
-        this.windowRightBtn.parentNode.replaceChild(newWindowRight, this.windowRightBtn);
-        this.windowRightBtn = newWindowRight;
+
+        const newWindowStart = this.windowStartSlider.cloneNode(true);
+        this.windowStartSlider.parentNode.replaceChild(newWindowStart, this.windowStartSlider);
+        this.windowStartSlider = newWindowStart;
         
         // 윈도우 컨트롤 이벤트 재등록
         this.windowEnabledCheckbox.addEventListener('change', (e) => {
             this.visualizer.toggleWindow(e.target.checked);
             this.updateWindowControls();
+            this.updateVisualization();
         });
-        
-        this.windowSizeInput.addEventListener('change', (e) => {
+
+        this.windowSizeInput.addEventListener('input', (e) => {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
             this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
             this.updateWindowControls();
-        });
-        
-        this.windowLeftBtn.addEventListener('click', () => {
-            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.moveWindow('left', xDimIndex);
-            this.updateWindowControls();
             this.updateVisualization();
         });
-        
-        this.windowRightBtn.addEventListener('click', () => {
+
+        this.windowStartSlider.addEventListener('input', (e) => {
             const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.moveWindow('right', xDimIndex);
+            this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
             this.updateWindowControls();
             this.updateVisualization();
         });
@@ -307,12 +292,18 @@ class HighDimensionalDataApp {
         
         const enabled = this.windowEnabledCheckbox.checked;
         this.windowSizeInput.disabled = !enabled;
-        this.windowLeftBtn.disabled = !enabled;
-        this.windowRightBtn.disabled = !enabled;
+        this.windowStartSlider.disabled = !enabled;
         
         if (enabled && this.visualizer.windowConfig) {
-            const { xMin, xMax } = this.visualizer.windowConfig;
+            const { xMin, xMax, step, windowSize } = this.visualizer.windowConfig;
             this.windowRangeSpan.textContent = `범위: ${xMin.toFixed(1)} ~ ${xMax.toFixed(1)}`;
+            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
+            const min = this.currentData.metadata.dimRangeMin[xDimIndex];
+            const max = this.currentData.metadata.dimRangeMax[xDimIndex];
+            this.windowStartSlider.min = min;
+            this.windowStartSlider.max = max - windowSize;
+            this.windowStartSlider.step = step;
+            this.windowStartSlider.value = xMin;
         } else {
             this.windowRangeSpan.textContent = '범위: 전체';
         }

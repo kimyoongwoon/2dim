@@ -117,6 +117,39 @@ export class ProjectionEngine {
     }
 
     /**
+     * 1D 정사영 수행 (y축은 값 사용)
+     */
+    project1D(xDimIndex, windowConfig = null) {
+        const projectedPoints = [];
+
+        const excludeDims = [xDimIndex];
+
+        for (const point of this.points) {
+            if (!this.passesFilters(point, excludeDims)) {
+                continue;
+            }
+
+            const x = point.coordinateNum[xDimIndex];
+            const y = point.value.type === ValueType.DOUBLE ? point.value.value : NaN;
+
+            if (windowConfig) {
+                if (x < windowConfig.xMin || x > windowConfig.xMax) {
+                    continue;
+                }
+            }
+
+            projectedPoints.push({
+                x,
+                y,
+                originalPoint: point,
+                label: this.getPointLabel(point)
+            });
+        }
+
+        return projectedPoints;
+    }
+
+    /**
      * 포인트 라벨 생성
      */
     getPointLabel(point) {

@@ -52,6 +52,18 @@ class HighDimensionalDataApp {
             this.vectorSizeGroup.style.display = isVector ? 'block' : 'none';
         });
 
+        // 차원 수가 1이면 값 타입을 단일 실수로 고정
+        this.dimensionsInput.addEventListener('input', (e) => {
+            const dim = parseInt(e.target.value);
+            if (dim === 1) {
+                this.valueTypeSelect.value = 'double';
+                this.valueTypeSelect.disabled = true;
+                this.vectorSizeGroup.style.display = 'none';
+            } else if (this.dataPresetSelect.value !== 'stock') {
+                this.valueTypeSelect.disabled = false;
+            }
+        });
+
         if (this.dataPresetSelect) {
             this.dataPresetSelect.addEventListener('change', () => {
                 const preset = this.dataPresetSelect.value;
@@ -207,9 +219,14 @@ class HighDimensionalDataApp {
             yOption.textContent = dimName;
             this.yAxisSelect.appendChild(yOption);
         }
-        
-        // 기본값 설정 (X=0, Y=1)
-        if (this.currentData.metadata.dimensions > 1) {
+
+        if (this.currentData.metadata.dimensions === 1) {
+            const valueOption = document.createElement('option');
+            valueOption.value = 'value';
+            valueOption.textContent = '값';
+            this.yAxisSelect.appendChild(valueOption);
+            this.yAxisSelect.value = 'value';
+        } else {
             this.yAxisSelect.value = '1';
         }
         
@@ -323,6 +340,7 @@ class HighDimensionalDataApp {
                 const value = parseFloat(e.target.value);
                 valueSpan.textContent = value.toFixed(2);
                 this.visualizer.updateFilter(i, { value });
+                this.updateVisualization();
             });
             
             // 조건 버튼 이벤트
@@ -339,6 +357,7 @@ class HighDimensionalDataApp {
                     e.target.classList.add('active');
                     
                     this.visualizer.updateFilter(dim, { condition });
+                    this.updateVisualization();
                 });
             });
         }
@@ -361,7 +380,7 @@ class HighDimensionalDataApp {
             const max = this.currentData.metadata.dimRangeMax[xDimIndex];
             this.windowStartSlider.min = min;
             this.windowStartSlider.max = max - windowSize;
-            this.windowStartSlider.step = step;
+            this.windowStartSlider.step = 'any';
             this.windowStartSlider.value = xMin;
         } else {
             this.windowRangeSpan.textContent = '범위: 전체';
@@ -372,11 +391,12 @@ class HighDimensionalDataApp {
         if (!this.currentData || !this.visualizer || !this.xAxisSelect || !this.yAxisSelect) return;
         
         const xDimIndex = parseInt(this.xAxisSelect.value);
-        const yDimIndex = parseInt(this.yAxisSelect.value);
+        const yValue = this.yAxisSelect.value;
+        const yDimIndex = yValue === 'value' ? -1 : parseInt(yValue);
         const colorScheme = this.colorSchemeSelect.value;
         
         // 같은 차원 선택 방지
-        if (xDimIndex === yDimIndex) {
+        if (yDimIndex >= 0 && xDimIndex === yDimIndex) {
             alert('X축과 Y축은 서로 다른 차원을 선택해주세요.');
             return;
         }
@@ -389,8 +409,10 @@ class HighDimensionalDataApp {
         
         // 선택된 차원들은 필터에서 'any' 조건으로 설정
         this.visualizer.updateFilter(xDimIndex, { condition: 'any' });
-        this.visualizer.updateFilter(yDimIndex, { condition: 'any' });
-        
+        if (yDimIndex >= 0) {
+            this.visualizer.updateFilter(yDimIndex, { condition: 'any' });
+        }
+
         // 시각화 업데이트
         const displayedCount = this.visualizer.updateVisualization(xDimIndex, yDimIndex, colorScheme);
         

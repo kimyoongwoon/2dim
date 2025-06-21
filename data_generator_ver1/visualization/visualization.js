@@ -89,12 +89,17 @@ export class Visualizer {
      * 시각화 업데이트
      */
     updateVisualization(xDimIndex, yDimIndex, colorScheme = 'viridis') {
-        // 2D 정사영 수행
-        const projectedPoints = this.projectionEngine.project2D(
-            xDimIndex, 
-            yDimIndex,
-            this.windowConfig.enabled ? this.windowConfig : null
-        );
+        // 2D 또는 1D 정사영 수행
+        const projectedPoints = (yDimIndex < 0)
+            ? this.projectionEngine.project1D(
+                xDimIndex,
+                this.windowConfig.enabled ? this.windowConfig : null
+            )
+            : this.projectionEngine.project2D(
+                xDimIndex,
+                yDimIndex,
+                this.windowConfig.enabled ? this.windowConfig : null
+            );
 
         // 데이터셋 생성
         const datasets = this.createDatasets(projectedPoints, colorScheme);
@@ -102,10 +107,12 @@ export class Visualizer {
         // 차트 업데이트 또는 생성
         if (this.chart) {
             this.chart.data.datasets = datasets;
-            this.chart.options.scales.x.title.text = 
+            this.chart.options.scales.x.title.text =
                 this.projectionEngine.metadata.dimNames[xDimIndex];
-            this.chart.options.scales.y.title.text = 
-                this.projectionEngine.metadata.dimNames[yDimIndex];
+            this.chart.options.scales.y.title.text =
+                yDimIndex < 0
+                    ? 'Value'
+                    : this.projectionEngine.metadata.dimNames[yDimIndex];
             
             // 윈도우가 활성화된 경우 x축 범위 설정
             if (this.windowConfig.enabled) {
@@ -119,10 +126,12 @@ export class Visualizer {
             this.chart.update('none'); // 애니메이션 없이 업데이트
         } else {
             this.chartConfig.data.datasets = datasets;
-            this.chartConfig.options.scales.x.title.text = 
+            this.chartConfig.options.scales.x.title.text =
                 this.projectionEngine.metadata.dimNames[xDimIndex];
-            this.chartConfig.options.scales.y.title.text = 
-                this.projectionEngine.metadata.dimNames[yDimIndex];
+            this.chartConfig.options.scales.y.title.text =
+                yDimIndex < 0
+                    ? 'Value'
+                    : this.projectionEngine.metadata.dimNames[yDimIndex];
             
             this.chart = new Chart(this.ctx, this.chartConfig);
         }

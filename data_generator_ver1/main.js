@@ -31,8 +31,7 @@ class HighDimensionalDataApp {
         this.yAxisSelect = document.getElementById('yAxis');
         this.colorSchemeSelect = document.getElementById('colorScheme');
         this.updateVizBtn = document.getElementById('updateVizBtn');
-        this.pointCountSpan = document.getElementById('pointCount');
-        
+        this.pointCountSpan = document.getElementById('displayedCount');        
         // 윈도우 컨트롤
         this.windowEnabledCheckbox = document.getElementById('windowEnabled');
         this.windowSizeInput = document.getElementById('windowSize');

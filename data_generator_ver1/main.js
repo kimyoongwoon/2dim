@@ -214,10 +214,6 @@ class HighDimensionalDataApp {
             this.initializeVisualizationUI();
         }
         
-        // 콘솔에 상세 정보 출력
-        console.log('Generated Data:', this.currentData);
-        console.log('Grid Dimensions:', this.currentGrid.getDims());
-        console.log('Total Grid Points:', this.currentGrid.getAllPoints().length);
     }
 
     initializeVisualizationUI() {

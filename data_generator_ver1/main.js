@@ -8,7 +8,10 @@ import { Visualizer }    from './visualization/visualization.js';
 class HighDimensionalDataApp {
     constructor() {
         this.generator = new DataGenerator();
-        this.visualizer = new Visualizer('vizChart');
+        // 시각화 캔버스가 있을 때만 Visualizer 생성
+        this.visualizer = document.getElementById('vizChart')
+            ? new Visualizer('vizChart')
+            : null;
         this.currentData = null;
         this.currentGrid = null;
         
@@ -92,45 +95,53 @@ class HighDimensionalDataApp {
         }
         
         // X축 변경 시 윈도우 범위 업데이트
-        this.xAxisSelect.addEventListener('change', () => {
-            if (!this.currentData) return;
-            const xDimIndex = parseInt(this.xAxisSelect.value);
-            const min = this.currentData.metadata.dimRangeMin[xDimIndex];
-            const max = this.currentData.metadata.dimRangeMax[xDimIndex];
-            this.visualizer.windowConfig.xMin = min;
-            this.visualizer.windowConfig.xMax = Math.min(min + this.visualizer.windowConfig.windowSize, max);
-            this.visualizer.windowConfig.step = (max - min) / 20;
-            this.updateWindowControls();
-        });
+        if (this.xAxisSelect)
+            this.xAxisSelect.addEventListener('change', () => {
+                if (!this.currentData || !this.visualizer) return;
+                const xDimIndex = parseInt(this.xAxisSelect.value);
+                const min = this.currentData.metadata.dimRangeMin[xDimIndex];
+                const max = this.currentData.metadata.dimRangeMax[xDimIndex];
+                this.visualizer.windowConfig.xMin = min;
+                this.visualizer.windowConfig.xMax = Math.min(min + this.visualizer.windowConfig.windowSize, max);
+                this.visualizer.windowConfig.step = (max - min) / 20;
+                this.updateWindowControls();
+            });
         
         // 윈도우 컨트롤 이벤트
-        this.windowEnabledCheckbox.addEventListener('change', (e) => {
-            this.visualizer.toggleWindow(e.target.checked);
-            this.updateWindowControls();
-            this.updateVisualization();
-        });
+        if (this.windowEnabledCheckbox)
+            this.windowEnabledCheckbox.addEventListener('change', (e) => {
+                if (!this.visualizer) return;
+                this.visualizer.toggleWindow(e.target.checked);
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
 
-        this.windowSizeInput.addEventListener('input', (e) => {
-            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
-            this.updateWindowControls();
-            this.updateVisualization();
-        });
+        if (this.windowSizeInput)
+            this.windowSizeInput.addEventListener('input', (e) => {
+                if (!this.visualizer) return;
+                const xDimIndex = parseInt(this.xAxisSelect?.value || 0);
+                this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
 
-        this.windowStartSlider.addEventListener('input', (e) => {
-            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
-            this.updateWindowControls();
-            this.updateVisualization();
-        });
+        if (this.windowStartSlider)
+            this.windowStartSlider.addEventListener('input', (e) => {
+                if (!this.visualizer) return;
+                const xDimIndex = parseInt(this.xAxisSelect?.value || 0);
+                this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
 
         if (this.zoomInBtn) {
             this.zoomInBtn.addEventListener('click', () => {
+                if (!this.visualizer) return;
                 const step = this.visualizer.windowConfig.step || 1;
                 const newSize = Math.max(step, this.visualizer.windowConfig.windowSize - step);
-                const xDimIndex = parseInt(this.xAxisSelect.value || 0);
+                const xDimIndex = parseInt(this.xAxisSelect?.value || 0);
                 this.visualizer.resizeWindow(newSize, xDimIndex);
-                this.windowSizeInput.value = newSize;
+                if (this.windowSizeInput) this.windowSizeInput.value = newSize;
                 this.updateWindowControls();
                 this.updateVisualization();
             });
@@ -138,11 +149,12 @@ class HighDimensionalDataApp {
 
         if (this.zoomOutBtn) {
             this.zoomOutBtn.addEventListener('click', () => {
+                if (!this.visualizer) return;
                 const step = this.visualizer.windowConfig.step || 1;
                 const newSize = this.visualizer.windowConfig.windowSize + step;
-                const xDimIndex = parseInt(this.xAxisSelect.value || 0);
+                const xDimIndex = parseInt(this.xAxisSelect?.value || 0);
                 this.visualizer.resizeWindow(newSize, xDimIndex);
-                this.windowSizeInput.value = newSize;
+                if (this.windowSizeInput) this.windowSizeInput.value = newSize;
                 this.updateWindowControls();
                 this.updateVisualization();
             });
@@ -160,9 +172,11 @@ class HighDimensionalDataApp {
         if (this.visualizer && this.visualizer.chart) {
             this.visualizer.destroy();
         }
-        
-        // 새 Visualizer 인스턴스 생성
-        this.visualizer = new Visualizer('vizChart');
+
+        // 필요 시 Visualizer 인스턴스 생성
+        if (!this.visualizer && document.getElementById('vizChart')) {
+            this.visualizer = new Visualizer('vizChart');
+        }
 
         // 데이터 생성
         const config = {
@@ -182,7 +196,9 @@ class HighDimensionalDataApp {
         });
 
         // 시각화 데이터 설정
-        this.visualizer.setData(this.currentData);
+        if (this.visualizer) {
+            this.visualizer.setData(this.currentData);
+        }
 
         // 결과 표시
         this.displayData();
@@ -194,7 +210,9 @@ class HighDimensionalDataApp {
         }
         
         // 시각화 UI 초기화
-        this.initializeVisualizationUI();
+        if (this.visualizer) {
+            this.initializeVisualizationUI();
+        }
         
         // 콘솔에 상세 정보 출력
         console.log('Generated Data:', this.currentData);
@@ -280,31 +298,39 @@ class HighDimensionalDataApp {
         }
         
         // 윈도우 컨트롤 이벤트 재등록
-        if (this.windowEnabledCheckbox) this.windowEnabledCheckbox.addEventListener('change', (e) => {
-            this.visualizer.toggleWindow(e.target.checked);
-            this.updateWindowControls();
-            this.updateVisualization();
-        });
+        if (this.windowEnabledCheckbox)
+            this.windowEnabledCheckbox.addEventListener('change', (e) => {
+                if (!this.visualizer) return;
+                this.visualizer.toggleWindow(e.target.checked);
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
 
-        if (this.windowSizeInput) this.windowSizeInput.addEventListener('input', (e) => {
-            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
-            this.updateWindowControls();
-            this.updateVisualization();
-        });
+        if (this.windowSizeInput)
+            this.windowSizeInput.addEventListener('input', (e) => {
+                if (!this.visualizer) return;
+                const xDimIndex = parseInt(this.xAxisSelect?.value || 0);
+                this.visualizer.resizeWindow(parseFloat(e.target.value), xDimIndex);
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
 
-        if (this.windowStartSlider) this.windowStartSlider.addEventListener('input', (e) => {
-            const xDimIndex = parseInt(this.xAxisSelect.value || 0);
-            this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
-            this.updateWindowControls();
-            this.updateVisualization();
-        });
+        if (this.windowStartSlider)
+            this.windowStartSlider.addEventListener('input', (e) => {
+                if (!this.visualizer) return;
+                const xDimIndex = parseInt(this.xAxisSelect?.value || 0);
+                this.visualizer.setWindowStart(parseFloat(e.target.value), xDimIndex);
+                this.updateWindowControls();
+                this.updateVisualization();
+            });
         
         // 윈도우 컨트롤 업데이트
-        this.updateWindowControls();
-        
-        // 초기 시각화
-        this.updateVisualization();
+        if (this.visualizer) {
+            this.updateWindowControls();
+
+            // 초기 시각화
+            this.updateVisualization();
+        }
     }
 
     createDimensionFilters() {
